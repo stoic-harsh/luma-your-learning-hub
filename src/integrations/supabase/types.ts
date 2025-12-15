@@ -14,16 +14,274 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      course_requests: {
+        Row: {
+          course_name: string
+          course_provider: string
+          course_url: string | null
+          created_at: string
+          estimated_cost: number | null
+          id: string
+          manager_id: string | null
+          proof_of_completion: string | null
+          reason: string | null
+          reimbursement_completed: boolean | null
+          requester_id: string
+          reviewed_at: string | null
+          reviewer_notes: string | null
+          status: Database["public"]["Enums"]["course_request_status"]
+          updated_at: string
+        }
+        Insert: {
+          course_name: string
+          course_provider: string
+          course_url?: string | null
+          created_at?: string
+          estimated_cost?: number | null
+          id?: string
+          manager_id?: string | null
+          proof_of_completion?: string | null
+          reason?: string | null
+          reimbursement_completed?: boolean | null
+          requester_id: string
+          reviewed_at?: string | null
+          reviewer_notes?: string | null
+          status?: Database["public"]["Enums"]["course_request_status"]
+          updated_at?: string
+        }
+        Update: {
+          course_name?: string
+          course_provider?: string
+          course_url?: string | null
+          created_at?: string
+          estimated_cost?: number | null
+          id?: string
+          manager_id?: string | null
+          proof_of_completion?: string | null
+          reason?: string | null
+          reimbursement_completed?: boolean | null
+          requester_id?: string
+          reviewed_at?: string | null
+          reviewer_notes?: string | null
+          status?: Database["public"]["Enums"]["course_request_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_requests_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_requests_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_templates: {
+        Row: {
+          bcc: string | null
+          body: string
+          cc: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          bcc?: string | null
+          body: string
+          cc?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          bcc?: string | null
+          body?: string
+          cc?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          employee_id: string
+          employee_role: Database["public"]["Enums"]["employee_role"]
+          id: string
+          manager_id: string | null
+          name: string
+          office_location: Database["public"]["Enums"]["office_location"]
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          employee_id: string
+          employee_role?: Database["public"]["Enums"]["employee_role"]
+          id?: string
+          manager_id?: string | null
+          name: string
+          office_location?: Database["public"]["Enums"]["office_location"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          employee_id?: string
+          employee_role?: Database["public"]["Enums"]["employee_role"]
+          id?: string
+          manager_id?: string | null
+          name?: string
+          office_location?: Database["public"]["Enums"]["office_location"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_group_members: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          profile_id: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          profile_id: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "project_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_group_members_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_groups: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_profile_by_user_id: { Args: { _user_id: string }; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
+      course_request_status: "pending" | "approved" | "rejected"
+      employee_role:
+        | "Intern"
+        | "Programmer Analyst Trainee"
+        | "Programmer Analyst"
+        | "Business/Technology Analyst"
+        | "Senior Analyst"
+        | "AEL"
+        | "EL"
+        | "SEL"
+        | "Director"
+        | "Executive Director"
+      office_location:
+        | "Cyber Greens, Gurgaon"
+        | "Managed Services, Gurgaon"
+        | "Analytics Office, Pune"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +408,26 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+      course_request_status: ["pending", "approved", "rejected"],
+      employee_role: [
+        "Intern",
+        "Programmer Analyst Trainee",
+        "Programmer Analyst",
+        "Business/Technology Analyst",
+        "Senior Analyst",
+        "AEL",
+        "EL",
+        "SEL",
+        "Director",
+        "Executive Director",
+      ],
+      office_location: [
+        "Cyber Greens, Gurgaon",
+        "Managed Services, Gurgaon",
+        "Analytics Office, Pune",
+      ],
+    },
   },
 } as const
