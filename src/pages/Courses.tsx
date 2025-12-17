@@ -1,23 +1,33 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { 
   Search, 
-  Filter, 
   Star, 
   Clock, 
   Users, 
   ExternalLink,
   BookOpen,
   Play,
-  DollarSign
+  DollarSign,
+  Send
 } from 'lucide-react';
 import { courses } from '@/data/mockData';
 import { Course } from '@/types';
-import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 const categories = ['All', 'Cloud Computing', 'Leadership', 'Data Science', 'Security', 'Web Development', 'Project Management'];
 const providers = ['All', 'Internal', 'Udemy', 'Coursera', 'LinkedIn Learning'];
@@ -27,6 +37,7 @@ const Courses = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedProvider, setSelectedProvider] = useState('All');
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [isApplyDialogOpen, setIsApplyDialogOpen] = useState(false);
 
   const filteredCourses = courses.filter((course) => {
     const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -38,6 +49,11 @@ const Courses = () => {
 
   const internalCourses = filteredCourses.filter(c => !c.isExternal);
   const externalCourses = filteredCourses.filter(c => c.isExternal);
+
+  const handleApplyClick = (course: Course) => {
+    setSelectedCourse(course);
+    setIsApplyDialogOpen(true);
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -89,25 +105,46 @@ const Courses = () => {
         </TabsList>
 
         <TabsContent value="all" className="space-y-0">
-          <CourseGrid courses={filteredCourses} onSelect={setSelectedCourse} />
+          <CourseGrid courses={filteredCourses} onSelect={setSelectedCourse} onApply={handleApplyClick} />
         </TabsContent>
         <TabsContent value="internal" className="space-y-0">
-          <CourseGrid courses={internalCourses} onSelect={setSelectedCourse} />
+          <CourseGrid courses={internalCourses} onSelect={setSelectedCourse} onApply={handleApplyClick} />
         </TabsContent>
         <TabsContent value="external" className="space-y-0">
-          <CourseGrid courses={externalCourses} onSelect={setSelectedCourse} />
+          <CourseGrid courses={externalCourses} onSelect={setSelectedCourse} onApply={handleApplyClick} />
         </TabsContent>
       </Tabs>
 
       {/* Course Detail Modal */}
-      {selectedCourse && (
-        <CourseDetailModal course={selectedCourse} onClose={() => setSelectedCourse(null)} />
+      {selectedCourse && !isApplyDialogOpen && (
+        <CourseDetailModal 
+          course={selectedCourse} 
+          onClose={() => setSelectedCourse(null)} 
+          onApply={() => setIsApplyDialogOpen(true)}
+        />
+      )}
+
+      {/* Apply for Course Dialog */}
+      {selectedCourse && isApplyDialogOpen && (
+        <ApplyForCourseDialog
+          course={selectedCourse}
+          onClose={() => {
+            setIsApplyDialogOpen(false);
+            setSelectedCourse(null);
+          }}
+        />
       )}
     </div>
   );
 };
 
-const CourseGrid = ({ courses, onSelect }: { courses: Course[]; onSelect: (c: Course) => void }) => {
+interface CourseGridProps {
+  courses: Course[];
+  onSelect: (c: Course) => void;
+  onApply: (c: Course) => void;
+}
+
+const CourseGrid = ({ courses, onSelect, onApply }: CourseGridProps) => {
   if (courses.length === 0) {
     return (
       <div className="text-center py-12">
@@ -192,7 +229,13 @@ const CourseGrid = ({ courses, onSelect }: { courses: Course[]; onSelect: (c: Co
   );
 };
 
-const CourseDetailModal = ({ course, onClose }: { course: Course; onClose: () => void }) => {
+interface CourseDetailModalProps {
+  course: Course;
+  onClose: () => void;
+  onApply: () => void;
+}
+
+const CourseDetailModal = ({ course, onClose, onApply }: CourseDetailModalProps) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-foreground/50 backdrop-blur-sm" onClick={onClose} />
@@ -258,7 +301,8 @@ const CourseDetailModal = ({ course, onClose }: { course: Course; onClose: () =>
           <div className="flex gap-3 pt-4">
             {course.isExternal ? (
               <>
-                <Button variant="gradient" className="flex-1">
+                <Button variant="gradient" className="flex-1" onClick={onApply}>
+                  <Send className="h-4 w-4 mr-2" />
                   Apply for Course
                 </Button>
                 <Button variant="outline">
@@ -276,6 +320,187 @@ const CourseDetailModal = ({ course, onClose }: { course: Course; onClose: () =>
         </CardContent>
       </Card>
     </div>
+  );
+};
+
+interface ApplyForCourseDialogProps {
+  course: Course;
+  onClose: () => void;
+}
+
+const ApplyForCourseDialog = ({ course, onClose }: ApplyForCourseDialogProps) => {
+  const { user, profileId } = useAuth();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
+  const [managerProfile, setManagerProfile] = useState<any>(null);
+  const [emailTemplate, setEmailTemplate] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    reason: '',
+    courseUrl: ''
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      // Fetch current user's profile
+      if (profileId) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*, manager:profiles!profiles_manager_id_fkey(id, name, email)')
+          .eq('id', profileId)
+          .maybeSingle();
+
+        if (profileData) {
+          setProfile(profileData);
+          if (profileData.manager) {
+            setManagerProfile(profileData.manager);
+          }
+        }
+      }
+
+      // Fetch email template
+      const { data: templateData } = await supabase
+        .from('email_templates')
+        .select('*')
+        .eq('name', 'Course Approval Request')
+        .maybeSingle();
+
+      if (templateData) {
+        setEmailTemplate(templateData);
+      }
+    };
+
+    fetchData();
+  }, [profileId]);
+
+  const replacePlaceholders = (text: string) => {
+    return text
+      .replace(/\{\{employee_name\}\}/g, profile?.name || '')
+      .replace(/\{\{course_name\}\}/g, course.title)
+      .replace(/\{\{course_provider\}\}/g, course.provider)
+      .replace(/\{\{estimated_cost\}\}/g, course.price?.toString() || 'N/A')
+      .replace(/\{\{reason\}\}/g, formData.reason);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      // Create course request in database
+      const { error } = await supabase
+        .from('course_requests')
+        .insert({
+          requester_id: profileId!,
+          manager_id: profile?.manager_id || null,
+          course_name: course.title,
+          course_provider: course.provider,
+          course_url: formData.courseUrl || null,
+          estimated_cost: course.price || null,
+          reason: formData.reason || null,
+          status: 'pending'
+        });
+
+      if (error) throw error;
+
+      // Open mailto with template
+      if (managerProfile?.email) {
+        const subject = emailTemplate?.subject 
+          ? encodeURIComponent(replacePlaceholders(emailTemplate.subject))
+          : encodeURIComponent(`Course Approval Request: ${course.title}`);
+        
+        const body = emailTemplate?.body
+          ? encodeURIComponent(replacePlaceholders(emailTemplate.body))
+          : encodeURIComponent(`Dear ${managerProfile.name},\n\nI would like to request approval for the course "${course.title}" by ${course.provider}.\n\nEstimated Cost: $${course.price || 'N/A'}\n\nReason: ${formData.reason}\n\nThank you.`);
+        
+        let mailtoUrl = `mailto:${managerProfile.email}?subject=${subject}&body=${body}`;
+        
+        if (emailTemplate?.cc) {
+          mailtoUrl += `&cc=${encodeURIComponent(emailTemplate.cc)}`;
+        }
+        if (emailTemplate?.bcc) {
+          mailtoUrl += `&bcc=${encodeURIComponent(emailTemplate.bcc)}`;
+        }
+
+        window.open(mailtoUrl, '_blank');
+      }
+
+      toast({
+        title: 'Request Submitted',
+        description: 'Your course approval request has been submitted to your manager.'
+      });
+
+      onClose();
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to submit request',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Apply for Course</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="p-3 rounded-lg bg-muted">
+            <p className="font-medium">{course.title}</p>
+            <p className="text-sm text-muted-foreground">{course.provider} • ${course.price || 'Free'}</p>
+          </div>
+
+          {managerProfile ? (
+            <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/20">
+              <p className="text-sm text-muted-foreground">Approval request will be sent to:</p>
+              <p className="font-medium">{managerProfile.name}</p>
+              <p className="text-sm text-muted-foreground">{managerProfile.email}</p>
+            </div>
+          ) : (
+            <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
+              <p className="text-sm text-warning">No manager assigned. Please contact admin.</p>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label>Course URL (optional)</Label>
+            <Input
+              value={formData.courseUrl}
+              onChange={(e) => setFormData({ ...formData, courseUrl: e.target.value })}
+              placeholder="https://..."
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Reason for taking this course</Label>
+            <Textarea
+              value={formData.reason}
+              onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+              placeholder="Explain how this course will help your career development..."
+              rows={4}
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              variant="gradient" 
+              className="flex-1" 
+              disabled={loading || !managerProfile}
+            >
+              {loading ? 'Submitting...' : 'Submit & Send Email'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
 
