@@ -60,10 +60,10 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       <aside className="w-64 bg-sidebar-background text-sidebar-foreground flex flex-col">
         <div className="p-4 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
-            <img src={procdnaLogo} alt="ProcDNA" className="h-8 w-auto brightness-0 invert" />
+            <img src={procdnaLogo} alt="ProcDNA" className="h-8 w-auto" />
             <div>
-              <h1 className="font-bold text-lg">LUMA Admin</h1>
-              <div className="flex items-center gap-1 text-xs text-sidebar-foreground/70">
+              <h1 className="font-bold text-lg text-white">LUMA Admin</h1>
+              <div className="flex items-center gap-1 text-xs text-white/70">
                 <Shield className="h-3 w-3" />
                 Admin Console
               </div>
@@ -82,8 +82,8 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                 className={cn(
                   'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
                   isActive 
-                    ? 'bg-sidebar-accent text-sidebar-accent-foreground' 
-                    : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+                    ? 'bg-sidebar-accent text-white font-medium' 
+                    : 'text-white/80 hover:bg-sidebar-accent/50 hover:text-white'
                 )}
               >
                 <Icon className="h-5 w-5" />
@@ -94,12 +94,12 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         </nav>
 
         <div className="p-4 border-t border-sidebar-border">
-          <div className="text-sm text-sidebar-foreground/70 mb-3">
+          <div className="text-sm text-white/70 mb-3">
             {user.email}
           </div>
           <Button 
             variant="outline" 
-            className="w-full border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent"
+            className="w-full border-white/30 text-white hover:bg-sidebar-accent hover:text-white"
             onClick={handleSignOut}
           >
             <LogOut className="h-4 w-4 mr-2" />
