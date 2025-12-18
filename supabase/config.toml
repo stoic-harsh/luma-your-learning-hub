@@ -1,1 +1,7 @@
 project_id = "xxwdgaikcbjvbejirwvy"
+
+[functions.setup-users]
+verify_jwt = false
+
+[functions.create-harshit-profile]
+verify_jwt = false
