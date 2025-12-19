@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -8,15 +9,37 @@ import {
   Clock, 
   TrendingUp, 
   ChevronRight, 
-  Sparkles,
-  Star,
+  Map,
   Play,
   CheckCircle
 } from 'lucide-react';
-import { learningProgress, certifications, aiRecommendations, courseRequests, currentUser } from '@/data/mockData';
+import { learningProgress, certifications, courseRequests, currentUser } from '@/data/mockData';
 import { Link } from 'react-router-dom';
+import { RoadmapTrackModal, getTrackById } from '@/components/RoadmapTrackModal';
+
+const pharmaRoadmapTracks = [
+  {
+    id: 'iqvia-dataset',
+    title: 'IQVIA Dataset',
+    description: 'Master pharmaceutical data analysis with IQVIA datasets',
+    duration: '40 hours',
+  },
+  {
+    id: 'data-engineering',
+    title: 'Data Engineering Fundamentals',
+    description: 'Build scalable data pipelines and ETL processes',
+    duration: '50 hours',
+  },
+  {
+    id: 'dqm-qc',
+    title: 'DQM / QC Framework',
+    description: 'Implement data quality management and QC processes',
+    duration: '35 hours',
+  },
+];
 
 const Dashboard = () => {
+  const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null);
   const completedCourses = learningProgress.filter(p => p.status === 'Completed').length;
   const inProgressCourses = learningProgress.filter(p => p.status === 'In Progress').length;
   const activeCerts = certifications.filter(c => c.status === 'Active').length;
@@ -183,45 +206,41 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* AI Recommendations */}
+        {/* Pharma Personalized Roadmap */}
         <div className="space-y-6">
           <Card className="border-secondary/30 bg-gradient-to-b from-secondary/5 to-transparent">
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-full gradient-bg flex items-center justify-center">
-                  <Sparkles className="h-4 w-4 text-primary-foreground" />
+                  <Map className="h-4 w-4 text-primary-foreground" />
                 </div>
-                <CardTitle className="text-lg">AI Recommendations</CardTitle>
+                <CardTitle className="text-lg">Pharma Personalized Roadmap</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Personalized courses based on your role and learning history.
+                Start a track to become an expert in pharma data.
               </p>
-              {aiRecommendations.map((rec) => (
+              {pharmaRoadmapTracks.map((track) => (
                 <div
-                  key={rec.courseId}
-                  className="p-4 rounded-lg bg-card border border-border hover:border-secondary/50 transition-colors cursor-pointer group"
+                  key={track.id}
+                  className="p-4 rounded-lg bg-card border border-border hover:border-secondary/50 transition-colors group"
                 >
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <Badge variant="secondary" className="text-xs">
-                      {rec.matchScore}% match
-                    </Badge>
-                    <div className="flex items-center text-xs text-muted-foreground">
-                      <Star className="h-3 w-3 text-warning mr-1" />
-                      {rec.course.rating}
-                    </div>
-                  </div>
                   <h4 className="font-medium text-sm mb-1 group-hover:text-secondary transition-colors">
-                    {rec.course.title}
+                    {track.title}
                   </h4>
                   <p className="text-xs text-muted-foreground line-clamp-2">
-                    {rec.reason}
+                    {track.description}
                   </p>
                   <div className="flex items-center justify-between mt-3">
-                    <span className="text-xs text-muted-foreground">{rec.course.duration}</span>
-                    <Button variant="ghost" size="sm" className="h-7 text-xs">
-                      Learn more
+                    <span className="text-xs text-muted-foreground">{track.duration}</span>
+                    <Button 
+                      variant="secondary" 
+                      size="sm" 
+                      className="h-7 text-xs"
+                      onClick={() => setSelectedTrackId(track.id)}
+                    >
+                      Start Track
                     </Button>
                   </div>
                 </div>
@@ -246,6 +265,13 @@ const Dashboard = () => {
           </Card>
         </div>
       </div>
+
+      {/* Roadmap Track Modal */}
+      <RoadmapTrackModal
+        isOpen={!!selectedTrackId}
+        onClose={() => setSelectedTrackId(null)}
+        track={selectedTrackId ? getTrackById(selectedTrackId) : null}
+      />
     </div>
   );
 };
