@@ -16,7 +16,7 @@ import {
 import { learningProgress, certifications, courseRequests, currentUser } from '@/data/mockData';
 import { Link } from 'react-router-dom';
 import { RoadmapTrackModal, getTrackById } from '@/components/RoadmapTrackModal';
-import CertificationTracker from '@/components/CertificationTracker';
+// import CertificationTrackr from '@/components/CertificationTracker';
 
 const pharmaRoadmapTracks = [
   {
@@ -228,7 +228,7 @@ const Dashboard = () => {
       </div>
 
       {/* Certification Tracker - Full Width */}
-      <CertificationTracker />
+      {/* <CertificationTracker /> */}
 
       <RoadmapTrackModal
         isOpen={!!selectedTrackId}
