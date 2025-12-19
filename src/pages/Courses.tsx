@@ -100,8 +100,8 @@ const Courses = () => {
       <Tabs defaultValue="all" className="space-y-6">
         <TabsList className="bg-muted/50">
           <TabsTrigger value="all">All Courses ({filteredCourses.length})</TabsTrigger>
-          <TabsTrigger value="internal">Internal ({internalCourses.length})</TabsTrigger>
-          <TabsTrigger value="external">External ({externalCourses.length})</TabsTrigger>
+          <TabsTrigger value="internal">Mandatory Training ({internalCourses.length})</TabsTrigger>
+          <TabsTrigger value="external">Internal ({externalCourses.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-0">
