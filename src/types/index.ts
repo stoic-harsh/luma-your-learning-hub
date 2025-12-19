@@ -32,6 +32,7 @@ export interface Certification {
   provider: string;
   dateEarned?: string;
   expiryDate?: string;
+  deadline?: string;
   status: 'Active' | 'Expired' | 'Pending' | 'In Progress';
   badgeUrl?: string;
 }

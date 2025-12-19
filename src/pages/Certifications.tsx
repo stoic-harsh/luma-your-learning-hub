@@ -29,7 +29,6 @@ const Certifications = () => {
   const activeCerts = filteredCerts.filter(c => c.status === 'Active');
   const inProgressCerts = filteredCerts.filter(c => c.status === 'In Progress');
   const expiredCerts = filteredCerts.filter(c => c.status === 'Expired');
-
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
@@ -196,7 +195,7 @@ const CertificationGrid = ({ certifications: certs }: { certifications: typeof i
               )}
               {cert.status === 'In Progress' && (
                 <Button variant="gradient" size="sm" className="w-full">
-                  Continue
+                  DEADLINE
                 </Button>
               )}
               {cert.status === 'Expired' && (
