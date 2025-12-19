@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import procdnaLogo from '@/assets/procdna-logo.png';
 import { currentUser } from '@/data/mockData';
+import { publicDecrypt } from 'crypto';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -26,6 +27,7 @@ const navItems = [
   { to: '/courses', icon: BookOpen, label: 'Explore Courses' },
   { to: '/certifications', icon: Award, label: 'Certifications' },
   { to: '/team', icon: Users, label: 'Team Tracker', managerOnly: true },
+  { to: '/organization', icon: Settings, label: 'Organization Overview', managerOnly: true },
 ];
 
 const DashboardLayout = ({ children, onOpenAIChat }: DashboardLayoutProps) => {

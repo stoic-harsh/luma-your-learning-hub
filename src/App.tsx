@@ -10,6 +10,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import Dashboard from "./pages/Dashboard";
 import Courses from "./pages/Courses";
 import Certifications from "./pages/Certifications";
+import Organization from "./pages/Organization";
 import TeamTracker from "./pages/TeamTracker";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import AIChatPanel from "./components/ai/AIChatPanel";
@@ -90,6 +91,14 @@ const App = () => (
               element={
                 <AuthenticatedLayout>
                   <TeamTracker />
+                </AuthenticatedLayout>
+              }
+            />
+            <Route
+              path="/organization"
+              element={
+                <AuthenticatedLayout>
+                  <Organization />
                 </AuthenticatedLayout>
               }
             />

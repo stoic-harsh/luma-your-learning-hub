@@ -16,6 +16,7 @@ import {
 import { learningProgress, certifications, courseRequests, currentUser } from '@/data/mockData';
 import { Link } from 'react-router-dom';
 import { RoadmapTrackModal, getTrackById } from '@/components/RoadmapTrackModal';
+import CertificationTracker from '@/components/CertificationTracker';
 
 const pharmaRoadmapTracks = [
   {
@@ -164,46 +165,6 @@ const Dashboard = () => {
                 ))}
             </CardContent>
           </Card>
-
-          {/* Recent Certifications */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-lg">My Certifications</CardTitle>
-              <Link to="/certifications">
-                <Button variant="ghost" size="sm">
-                  View all <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
-              </Link>
-            </CardHeader>
-            <CardContent>
-              <div className="grid sm:grid-cols-2 gap-4">
-                {certifications.slice(0, 4).map((cert) => (
-                  <div
-                    key={cert.id}
-                    className="flex items-center gap-4 p-4 rounded-lg border border-border"
-                  >
-                    {cert.badgeUrl ? (
-                      <img src={cert.badgeUrl} alt={cert.name} className="h-12 w-12 object-contain" />
-                    ) : (
-                      <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
-                        <Award className="h-6 w-6 text-muted-foreground" />
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-sm truncate">{cert.name}</h4>
-                      <p className="text-xs text-muted-foreground">{cert.provider}</p>
-                      <Badge 
-                        variant={cert.status === 'Active' ? 'success' : cert.status === 'In Progress' ? 'warning' : 'muted'}
-                        className="mt-1"
-                      >
-                        {cert.status}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Pharma Personalized Roadmap */}
@@ -266,7 +227,9 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Roadmap Track Modal */}
+      {/* Certification Tracker - Full Width */}
+      <CertificationTracker />
+
       <RoadmapTrackModal
         isOpen={!!selectedTrackId}
         onClose={() => setSelectedTrackId(null)}
